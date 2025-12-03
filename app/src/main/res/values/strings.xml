@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">FaunaTracker</string>
+
+    <string name="hero_desc">Monitoring, analysis and querying of animal movements and migration data - based on studies around the world.</string>
+    <string name="hero_button">Get Started</string>
+
+    <string name="auth_logo">FaunaTracker</string>
+    <string name="auth_hint_password">Password</string>
+    <string name="auth_hint_email">Email</string>
+    <string name="auth_hint_confirm">Confirm Email</string>
+
+    <string name="auth_header_login">Sign In</string>
+    <string name="auth_button_login">Sign In</string>
+    <string name="auth_redirect_login">Don\'t have an account?</string>
+    <string name="auth_redirectButton_login">Sign Up</string>
+
+    <string name="auth_header_register">Sign Up</string>
+    <string name="auth_button_register">Sign Up</string>
+    <string name="auth_redirect_register">Already have an account?</string>
+    <string name="auth_redirectButton_register">Sign In</string>
+
+    <string name="dashboard_placeholder">You do not have any saved studies yet. Try searching something up!</string>
+    <string name="dashboard_search_desc">Search</string>
+
+</resources>

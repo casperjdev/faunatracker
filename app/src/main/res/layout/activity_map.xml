@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="?attr/colorSecondary"
+    android:id="@+id/rootLayout"
+    tools:context=".map.MapActivity">
+
+    <!-- HEADER -->
+    <RelativeLayout
+        android:id="@+id/navbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="?attr/colorPrimary"
+        android:padding="8sp"
+        android:elevation="8dp">
+        <TextView
+            android:id="@+id/navbarText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textSize="16sp"
+            android:textColor="?attr/colorSecondary"
+            android:text="Map"
+            />
+        <Button
+            android:layout_width="24sp"
+            android:layout_height="24sp"
+            android:layout_alignParentEnd="true"
+            android:text="Back"
+            android:textSize="16sp"
+            android:textColor="?attr/colorSecondary"
+            android:background="@android:color/transparent"/>
+    </RelativeLayout>
+
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- MAP VIEW -->
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- BOTTOM SHEET -->
+        <LinearLayout
+            android:id="@+id/bottomSheet"
+            android:orientation="vertical"
+            android:background="?attr/colorSecondary"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- DRAG HANDLE -->
+            <LinearLayout
+                android:id="@+id/thumb"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:background="@android:color/transparent">
+
+                <View
+                    android:layout_width="40dp"
+                    android:layout_height="4dp"
+                    android:background="@drawable/drag_handle" />
+            </LinearLayout>
+
+            <!-- HALF-EXPANDED HEADER (horizontal) -->
+            <LinearLayout
+                android:id="@+id/headerRow"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:id="@+id/speciesImage"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:scaleType="centerCrop"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:id="@+id/speciesName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary" />
+            </LinearLayout>
+
+            <!-- FULL EXPANDED CONTENT -->
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/wikiScroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fillViewport="true"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/wikiContent"
+                    android:textColor="?attr/colorPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp" />
+
+            </androidx.core.widget.NestedScrollView>
+
+            <!-- Add padding for gesture navigation insets -->
+            <View
+                android:id="@+id/bottomNavInsetSpacer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+
+        </LinearLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>

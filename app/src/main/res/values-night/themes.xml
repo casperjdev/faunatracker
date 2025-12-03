@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Faunatracker" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="colorPrimary">@color/dark_Primary</item>
+        <item name="colorSecondary">@color/dark_Secondary</item>
+        <item name="colorPrimaryVariant">@color/dark_PrimaryTransparent</item>
+        <item name="colorSecondaryVariant">@color/dark_SecondaryTransparent</item>
+    </style>
+
+</resources>
