@@ -37,7 +37,6 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
             if (user == null) {
                 ToastHelper.show(context, "Registration failed (user might already exist)")
             }
-            else Session.login(user.email, user.password)
         }
     }
 }
