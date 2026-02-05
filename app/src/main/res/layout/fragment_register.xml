@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:orientation="vertical"
@@ -24,20 +25,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="32sp">
+            android:layout_marginBottom="12sp">
             <EditText
-                android:id="@+id/register_email"
-                android:autofillHints="emailAddress"
-                android:hint="@string/auth_hint_email"
+                android:id="@+id/register_uname"
+                android:autofillHints="unameAddress"
+                android:hint="@string/auth_hint_uname"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <EditText
-                android:id="@+id/register_confirm"
-                android:autofillHints="emailAddress"
-                android:hint="@string/auth_hint_confirm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:inputType="text"/>
 
             <EditText
                 android:id="@+id/register_password"
@@ -46,15 +41,37 @@
                 android:inputType="textPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
+
+            <EditText
+                android:id="@+id/register_confirm"
+                android:autofillHints="unameAddress"
+                android:hint="@string/auth_hint_confirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"/>
         </LinearLayout>
 
-        <Button
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/register_error"
+            android:text=""
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:textColor="#dd0000"
+            android:layout_marginBottom="12sp"
+            />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_register"
             android:text="@string/auth_button_register"
             android:layout_width="match_parent"
             android:layout_marginHorizontal="32sp"
-            android:layout_marginBottom="32sp"
-            android:layout_height="wrap_content"/>
+            android:layout_marginBottom="16sp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorSecondary"
+            app:rippleColor="?attr/colorSecondary"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -77,4 +94,19 @@
         </LinearLayout>
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorSecondaryVariant"
+        android:visibility="gone"
+        >
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:elevation="1dp"
+            android:indeterminateTint="?attr/colorPrimary"/>
+    </FrameLayout>
+</FrameLayout>

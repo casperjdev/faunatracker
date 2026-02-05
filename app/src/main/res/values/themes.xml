@@ -8,6 +8,8 @@
         <item name="android:fontFamily">@font/inter</item>
         <item name="colorPrimary">@color/light_Primary</item>
         <item name="colorSecondary">@color/light_Secondary</item>
+        <item name="colorTertiary">@color/light_Ternary</item>
+
         <item name="colorPrimaryVariant">@color/light_PrimaryTransparent</item>
         <item name="colorSecondaryVariant">@color/light_SecondaryTransparent</item>
     </style>

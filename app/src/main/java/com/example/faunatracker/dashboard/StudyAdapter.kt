@@ -1,4 +1,4 @@
-package com.example.faunatracker.search
+package com.example.faunatracker.dashboard
 
 import android.content.Intent
 import android.view.LayoutInflater

@@ -2,11 +2,18 @@
 <resources>
     <color name="light_Primary">#FF000000</color>
     <color name="light_Secondary">#FFFFFFFF</color>
+    <color name="light_Ternary">#FFAAAAAA</color>
+
     <color name="light_PrimaryTransparent">#44000000</color>
     <color name="light_SecondaryTransparent">#44FFFFFF</color>
+    <color name="light_TernaryTransparent">#44AAAAAA</color>
 
     <color name="dark_Primary">#FFFFFFFF</color>
     <color name="dark_Secondary">#FF000000</color>
+    <color name="dark_Ternary">#FF111111</color>
+
+
     <color name="dark_PrimaryTransparent">#44FFFFFF</color>
     <color name="dark_SecondaryTransparent">#44000000</color>
+    <color name="dark_TernaryTransparent">#44111111</color>
 </resources>

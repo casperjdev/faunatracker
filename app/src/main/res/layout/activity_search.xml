@@ -15,7 +15,9 @@
         <SearchView
             android:id="@+id/searchBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="64sp"
+            android:layout_marginStart="8sp"
+            android:layout_marginEnd="8sp"
             android:queryHint="Search studies..." />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -25,12 +27,11 @@
             android:layout_weight="1"/>
     </LinearLayout>
 
-    <!-- Full-screen loading overlay -->
     <FrameLayout
         android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#80FFFFFF"
+        android:background="?attr/colorSecondaryVariant"
         android:visibility="gone"
         >
 
@@ -40,7 +41,6 @@
             android:layout_gravity="center"
             android:elevation="1dp"
             android:indeterminateTint="?attr/colorPrimary"/>
-
     </FrameLayout>
 
 </FrameLayout>

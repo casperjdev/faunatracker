@@ -5,6 +5,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -16,6 +17,11 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 object ApiClient {
 
+    data class HttpResult(
+        val statusCode: Int,
+        val body: String?
+    )
+
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
@@ -23,11 +29,14 @@ object ApiClient {
     fun create(apiKey: String): OkHttpClient {
         val interceptor = Interceptor { chain: Interceptor.Chain ->
             val original: Request = chain.request()
-            val request: Request = original.newBuilder()
-                .addHeader("apikey", apiKey)
-                .addHeader("Authorization", "Bearer $apiKey")
-                .build()
-            chain.proceed(request)
+            val builder: Request.Builder = original.newBuilder()
+
+            if (apiKey.isNotBlank()) {
+                builder.addHeader("apikey", apiKey)
+                builder.addHeader("Authorization", "Bearer $apiKey")
+            }
+
+            chain.proceed(builder.build())
         }
 
         return OkHttpClient.Builder()
@@ -36,44 +45,69 @@ object ApiClient {
             .build()
     }
 
-    suspend fun get(client: OkHttpClient, url: String, headers: Map<String, String> = emptyMap()): String {
-        val deferred = CoroutineScope(Dispatchers.IO).async {
-            val requestBuilder = Request.Builder().url(url)
-            for ((key, value) in headers) {
-                requestBuilder.addHeader(key, value)
-            }
-            val request = requestBuilder.build()
+    suspend fun get(
+        client: OkHttpClient,
+        url: String,
+        headers: Map<String, String> = emptyMap()
+    ): HttpResult = withContext(Dispatchers.IO) {
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw RuntimeException("Unexpected code $response")
-                return@async response.body.string()
-            }
+        val requestBuilder = Request.Builder().url(url)
+        headers.forEach { (k, v) -> requestBuilder.addHeader(k, v) }
+
+        client.newCall(requestBuilder.build()).execute().use { response ->
+            HttpResult(
+                statusCode = response.code,
+                body = response.body.string()
+            )
         }
-
-        return deferred.await()
     }
 
-    suspend fun post(client: OkHttpClient, url: String, body: String, headers: Map<String, String> = emptyMap()): String {
-        val deferred = CoroutineScope(Dispatchers.IO).async {
-            val mediaType = "application/json; charset=utf-8".toMediaType()
-            val requestBody = body.toRequestBody(mediaType)
+    suspend fun post(
+        client: OkHttpClient,
+        url: String,
+        body: String,
+        headers: Map<String, String> = emptyMap()
+    ): HttpResult = withContext(Dispatchers.IO) {
 
-            val requestBuilder = Request.Builder()
-                .url(url)
-                .post(requestBody)
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val requestBody = body.toRequestBody(mediaType)
 
-            for ((key, value) in headers) {
-                requestBuilder.addHeader(key, value)
-            }
+        val requestBuilder = Request.Builder()
+            .url(url)
+            .post(requestBody)
 
-            val request = requestBuilder.build()
+        headers.forEach { (k, v) -> requestBuilder.addHeader(k, v) }
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw RuntimeException("Unexpected code $response")
-                return@async response.body.string()
-            }
+        client.newCall(requestBuilder.build()).execute().use { response ->
+            HttpResult(
+                statusCode = response.code,
+                body = response.body.string()
+            )
         }
-
-        return deferred.await()
     }
+
+    suspend fun patch(
+        client: OkHttpClient,
+        url: String,
+        body: String,
+        headers: Map<String, String> = emptyMap()
+    ): HttpResult = withContext(Dispatchers.IO) {
+
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val requestBody = body.toRequestBody(mediaType)
+
+        val requestBuilder = Request.Builder()
+            .url(url)
+            .patch(requestBody)
+
+        headers.forEach { (k, v) -> requestBuilder.addHeader(k, v) }
+
+        client.newCall(requestBuilder.build()).execute().use { response ->
+            HttpResult(
+                statusCode = response.code,
+                body = response.body.string()
+            )
+        }
+    }
+
 }

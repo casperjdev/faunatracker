@@ -4,10 +4,10 @@
     <string name="hero_desc">Monitoring, analysis and querying of animal movements and migration data - based on studies around the world.</string>
     <string name="hero_button">Get Started</string>
 
-    <string name="auth_logo">FaunaTracker</string>
+    <string name="auth_logo">faunatracker</string>
     <string name="auth_hint_password">Password</string>
-    <string name="auth_hint_email">Email</string>
-    <string name="auth_hint_confirm">Confirm Email</string>
+    <string name="auth_hint_uname">Username</string>
+    <string name="auth_hint_confirm">Confirm Password</string>
 
     <string name="auth_header_login">Sign In</string>
     <string name="auth_button_login">Sign In</string>

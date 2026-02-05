@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -7,56 +7,225 @@
     android:orientation="vertical"
     android:background="?attr/colorSecondary"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".settings.SettingsActivity">
-
-    <include layout='@layout/component_home_navbar' />
+    tools:context=".settings.SettingsActivity"
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16sp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Theme"
-            android:textSize="16sp"/>
-        <RadioGroup
+        android:orientation="vertical">
+        <RelativeLayout
+            android:id="@+id/navbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="?attr/colorSecondary"
+            android:padding="16sp">
+            <TextView
+                android:id="@+id/navbarText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:text="Settings"
+                />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1sp"
+            android:layout_marginStart="16sp"
+            android:layout_marginEnd="16sp"
+            android:background="?attr/colorTertiary"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:id="@+id/settings_theme">
-            <RadioButton
+            android:padding="16sp">
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Light"
+                android:text="Theme"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
                 android:textSize="16sp"
-                android:id="@+id/theme_light"/>
-            <RadioButton
+                android:layout_marginBottom="8sp"/>
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:id="@+id/settings_theme">
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Light"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="16sp"
+                    android:id="@+id/theme_light"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dark"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="16sp"
+                    android:id="@+id/theme_dark"/>
+            </RadioGroup>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1sp"
+                android:layout_marginTop="16sp"
+                android:layout_marginBottom="16sp"
+                android:background="?attr/colorTertiary"
+                />
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Dark"
+                android:text="Permissions"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
                 android:textSize="16sp"
-                android:id="@+id/theme_dark"/>
-        </RadioGroup>
+                android:layout_marginBottom="8sp"/>
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Allow push notifications  "
-            android:textSize="16sp"
-            android:id="@+id/settings_notifications"
-            app:trackTint="@color/switch_track"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Allow push notifications  "
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp"
+                android:id="@+id/settings_notifications"
+                app:trackTint="@color/switch_track"/>
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Allow acces to location  "
-            android:textSize="16sp"
-            android:id="@+id/settings_location"
-            app:trackTint="@color/switch_track"/>
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Allow acces to location  "
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp"
+                android:id="@+id/settings_location"
+                app:trackTint="@color/switch_track"/>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1sp"
+                android:layout_marginTop="16sp"
+                android:layout_marginBottom="16sp"
+                android:background="?attr/colorTertiary"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Account"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginBottom="16sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:visibility="visible"
+                android:id="@+id/profile_edit_disabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/profile_uname"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="20sp"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold"/>
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/profile_edit"
+                    android:text="Edit"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:textColor="?attr/colorSecondary"
+                    app:rippleColor="?attr/colorSecondary"
+                    android:layout_marginStart="16sp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:visibility="gone"
+                android:id="@+id/profile_edit_enabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/profile_uname_edit"
+                    android:autofillHints="unameAddress"
+                    android:hint="@string/auth_hint_uname"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textSize="20sp"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/profile_update"
+                    android:text="Save"
+                    android:backgroundTint="?attr/colorPrimary"
+                    android:textColor="?attr/colorSecondary"
+                    app:rippleColor="?attr/colorSecondary"
+                    android:layout_marginStart="16sp"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/profile_error"
+                android:text=""
+                android:textSize="16sp"
+                android:textAlignment="center"
+                android:textColor="#dd0000"
+                android:layout_marginTop="16sp"
+                android:layout_marginBottom="16sp"
+                />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/profile_logout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Logout"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="#dd0000"
+                app:rippleColor="?attr/colorSecondary"/>
+        </LinearLayout>
     </LinearLayout>
 
-</LinearLayout>
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorSecondaryVariant"
+        android:visibility="gone"
+        >
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:elevation="1dp"
+            android:indeterminateTint="?attr/colorPrimary"/>
+
+    </FrameLayout>
+
+</FrameLayout>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <LinearLayout
         android:orientation="vertical"
         android:padding="24dp"
@@ -10,7 +10,6 @@
         android:layout_height="match_parent"
         android:gravity="center"
         >
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -19,19 +18,18 @@
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="32sp"
             />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="32sp">
+            android:layout_marginBottom="12sp">
             <EditText
-                android:id="@+id/login_email"
-                android:autofillHints="emailAddress"
-                android:hint="@string/auth_hint_email"
+                android:id="@+id/login_uname"
+                android:autofillHints="unameAddress"
+                android:hint="@string/auth_hint_uname"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress" />
+                android:inputType="text" />
 
             <EditText
                 android:id="@+id/login_password"
@@ -42,13 +40,27 @@
                 android:layout_height="wrap_content"/>
         </LinearLayout>
 
-        <Button
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/login_error"
+            android:text=""
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:textColor="#dd0000"
+            android:layout_marginBottom="12sp"
+            />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_login"
             android:text="@string/auth_button_login"
             android:layout_width="match_parent"
             android:layout_marginHorizontal="32sp"
-            android:layout_marginBottom="32sp"
-            android:layout_height="wrap_content"/>
+            android:layout_marginBottom="16sp"
+            android:layout_height="wrap_content"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="?attr/colorSecondary"
+            app:rippleColor="?attr/colorSecondary"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -71,4 +83,21 @@
         </LinearLayout>
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorSecondaryVariant"
+        android:visibility="gone"
+        >
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:elevation="1dp"
+            android:indeterminateTint="?attr/colorPrimary"/>
+
+    </FrameLayout>
+
+</FrameLayout>

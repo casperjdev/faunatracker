@@ -11,6 +11,8 @@ val supabaseUrl: String = props.getProperty("SUPABASE_URL")
 val supabaseApiKey: String = props.getProperty("SUPABASE_API_KEY")
 val movebankUrl: String = props.getProperty("MOVEBANK_URL")
 val movebankToken: String = props.getProperty("MOVEBANK_TOKEN")
+val gbifUrl: String = props.getProperty("GBIF_URL")
+val wikipediaUrl: String = props.getProperty("WIKIPEDIA_URL")
 
 android {
     namespace = "com.example.faunatracker"
@@ -28,6 +30,8 @@ android {
         buildConfigField("String", "SUPABASE_API_KEY", "\"$supabaseApiKey\"")
         buildConfigField("String", "MOVEBANK_URL", "\"$movebankUrl\"")
         buildConfigField("String", "MOVEBANK_TOKEN", "\"$movebankToken\"")
+        buildConfigField("String", "GBIF_URL", "\"$gbifUrl\"")
+        buildConfigField("String", "WIKIPEDIA_URL", "\"$wikipediaUrl\"")
     }
 
     buildTypes {
@@ -79,4 +83,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     testImplementation(kotlin("test"))
     implementation(libs.opencsv)
+    implementation(libs.android.sdk)
+    implementation(libs.picasso)
+    
 }
