@@ -1,27 +1,22 @@
 package com.example.faunatracker.map
 
-import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
-
 import com.example.faunatracker.R
 import com.example.faunatracker.base.BaseActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.faunatracker.api.MovebankRepository
 import com.example.faunatracker.api.TaxonomyRepository
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,189 +24,119 @@ import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
-import org.maplibre.android.maps.MapView
 import java.net.URL
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import org.maplibre.android.annotations.IconFactory
-import org.w3c.dom.Text
+import com.example.faunatracker.api.SupabaseRepository
+import com.example.faunatracker.auth.session.Session
+import com.example.faunatracker.auth.session.Session.currentUser
+import com.example.faunatracker.databinding.ActivityMapBinding
 
-class MapActivity : BaseActivity() {
+class MapActivity : BaseActivity<ActivityMapBinding>(ActivityMapBinding::inflate) {
     // SHEET
-    private lateinit var bottomSheet: LinearLayout
     private lateinit var behavior: BottomSheetBehavior<LinearLayout>
-    private lateinit var thumb: View
-    private lateinit var headerRow: View
-
     private var hiddenHeight = 0
     private var halfHeight = 0
     private var lastSlideOffset = 0f
     private var slideDirection = SlideDirection.NONE
-
     enum class SlideDirection { UP, DOWN, NONE }
 
     // DATA
     companion object {
         const val EXTRA_STUDY_ID = "EXTRA_STUDY_ID"
     }
-    private var studyId: String? = null
+    private lateinit var studyId: String
     private var study: MovebankRepository.Study? = null
-    private lateinit var navbarTitle: TextView
-    private lateinit var speciesImage: ImageView
-    private lateinit var speciesName: TextView
-    private lateinit var speciesLatin: TextView
-    private lateinit var speciesContent: TextView
-
-    // MAP
-    private lateinit var mapView: MapView
-
-    // LOADING UI
-    private lateinit var mapLoading: FrameLayout
-    private lateinit var contentLoading: FrameLayout
+    private val movebank = MovebankRepository()
+    private val supabase = SupabaseRepository()
 
     private val prefs by lazy {
         getSharedPreferences("app_settings", MODE_PRIVATE)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun setInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val status = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val tappable = insets.getInsets(WindowInsetsCompat.Type.tappableElement())
 
-        // MAP
-        MapLibre.getInstance(this)
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(0, 0,0, bars.bottom)
 
-        setContentView(R.layout.activity_map)
-
-        mapView = findViewById(R.id.mapView)
-        mapView.getMapAsync { map ->
-            val userTheme = prefs.getString("theme", "light")
-
-            when (userTheme) {
-                "Light" -> map.setStyle("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")
-                "Dark" -> map.setStyle("https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json")
-                else -> map.setStyle("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")
-            }
-
-            map.cameraPosition = CameraPosition.Builder().target(LatLng(0.0, 0.0)).zoom(1.0).build()
-        }
-
-        // SHEET
-        bottomSheet = findViewById(R.id.bottomSheet)
-
-        ViewCompat.setOnApplyWindowInsetsListener(bottomSheet) { v, insets ->
-            v.setPadding(0,0,0,0)
-
-            val lp = v.layoutParams as ViewGroup.MarginLayoutParams
-            lp.topMargin = 0
-            v.layoutParams = lp
+            binding.navbar.updatePadding(top = status.top)
+            binding.bottomSheet.updatePadding(bottom = tappable.bottom)
 
             insets
         }
+        ViewCompat.requestApplyInsets(binding.root)
+    }
 
-        thumb = findViewById(R.id.thumb)
-        headerRow = findViewById(R.id.headerRow)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        MapLibre.getInstance(this@MapActivity)
+        super.onCreate(savedInstanceState)
 
-        behavior = BottomSheetBehavior.from(bottomSheet)
-        behavior.isFitToContents = false
-        behavior.skipCollapsed = false
-        behavior.isDraggable = true
-        behavior.expandedOffset = 0
+        initMap()
+        initSheet()
+        getStudyInfo()
+        initTray()
+    }
 
+    private fun initMap() {
+        with(binding) {
+            mapView.getMapAsync { map ->
+                val userTheme = prefs.getString("theme", "light")
 
-        bottomSheet.post {
-            setupBreakpoints()
-        }
-        attachCallbacks()
-
-        // DATA
-        studyId = intent.getStringExtra(EXTRA_STUDY_ID)
-        navbarTitle = findViewById(R.id.navbarText)
-        navbarTitle.isSelected = true;
-        speciesImage = findViewById(R.id.speciesImage)
-        speciesName = findViewById(R.id.speciesName)
-        speciesLatin = findViewById(R.id.speciesNameLatin)
-        speciesName.isSelected = true;
-        speciesLatin.isSelected = true;
-        speciesContent = findViewById(R.id.wikiContent)
-
-        // LOADING UI
-        mapLoading = findViewById(R.id.mapLoading)
-        contentLoading = findViewById(R.id.contentLoading)
-
-
-        studyId?.let {
-            lifecycleScope.launch(Dispatchers.IO) {
-                mapLoading.visibility = View.VISIBLE
-
-                study = MovebankRepository().getSingleStudy(it)
-
-                withContext(Dispatchers.Main) {
-                    study?.let{ study ->
-                        navbarTitle.text = study.name
-
-                        val eventData = MovebankRepository().getEventData(study.id)
-
-                        val drawable = ContextCompat.getDrawable(this@MapActivity, R.drawable.map_marker)
-                        val bitmap = drawable?.toBitmap(width = 48, height = 48)
-                        val icon =  IconFactory.getInstance(this@MapActivity)
-                            .fromBitmap(bitmap!!)
-                        mapView.getMapAsync { map ->
-                            eventData.forEach { event ->
-                                map.addMarker(MarkerOptions()
-                                    .icon(icon)
-                                    .position(LatLng(event.location_lat, event.location_long))
-                                    .title("Individual ID: ${event.individual_local_identifier}")
-                                    .snippet(event.timestamp))
-                            }
-                        }
-
-                        mapLoading.visibility = View.GONE
-                        headerRow.visibility = View.GONE
-                        contentLoading.visibility = View.VISIBLE
-
-                        val species = if (!study.taxon_ids.isEmpty()) study.taxon_ids.split(",").getOrNull(0) else "Unknown Species"
-                        if (species != null && species != "Unknown Species") {
-                            val article = TaxonomyRepository().getArticle(species)
-                            speciesName.text = article?.title
-                            speciesLatin.text = species
-                            speciesContent.text = article?.extract
-
-                            article?.thumbnailUrl?.let { url ->
-                                val bitmap = withContext(Dispatchers.IO) {
-                                    val connection = URL(url).openConnection()
-                                    BitmapFactory.decodeStream(connection.getInputStream())
-                                }
-                                speciesImage.setImageBitmap(bitmap)
-                            }
-                        } else {
-                            speciesName.text = "Unknown Species"
-                            speciesContent.text = "Could not fetch description."
-                            speciesImage.setImageResource(R.drawable.logo)
-                            speciesImage.imageTintList = ColorStateList.valueOf(
-                                when (prefs.getString("theme", "Light")) {
-                                    "Light" -> ContextCompat.getColor(this@MapActivity, R.color.light_Primary)
-                                    "Dark" -> ContextCompat.getColor(this@MapActivity, R.color.dark_Primary)
-                                    else -> ContextCompat.getColor(this@MapActivity, R.color.light_Primary)
-                                }
-                            )
-                        }
-
-                        contentLoading.visibility = View.GONE
-                        headerRow.visibility = View.VISIBLE
-                    }
+                when (userTheme) {
+                    "Light" -> map.setStyle("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")
+                    "Dark" -> map.setStyle("https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json")
+                    else -> map.setStyle("https://basemaps.cartocdn.com/gl/positron-gl-style/style.json")
                 }
+
+                map.cameraPosition = CameraPosition.Builder().target(LatLng(0.0, 0.0)).zoom(1.0).build()
             }
         }
     }
 
-    // HELPERS FOR SHEET
+    // bottom sheet
+    private fun initSheet() {
+        with(binding) {
+            behavior = BottomSheetBehavior.from(bottomSheet)
+            behavior.apply {
+                isFitToContents = false
+                skipCollapsed = false
+                isDraggable = true
+            }
+
+            bottomSheet.post {
+                setupBreakpoints()
+            }
+            attachCallbacks()
+        }
+    }
+
     private fun setupBreakpoints() {
-        hiddenHeight = thumb.height
-        halfHeight = thumb.height + ( if (headerRow.isVisible) headerRow else contentLoading).height
+        with(binding) {
+            hiddenHeight = thumb.height
+            halfHeight = thumb.height + ( if (headerRow.isVisible) headerRow else contentLoading).height
 
-        val parentHeight = (bottomSheet.parent as View).height
+            val parentHeight = (bottomSheet.parent as View).height
 
-        behavior.peekHeight = hiddenHeight
-        behavior.halfExpandedRatio = halfHeight.toFloat() / parentHeight
-        behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+            val navbarHeight = navbar.height
+            val sheetHeight = parentHeight - navbarHeight
+
+            bottomSheet.post {
+                val params = binding.bottomSheet.layoutParams
+                params.height = sheetHeight
+                binding.bottomSheet.layoutParams = params
+            }
+
+            behavior.apply {
+                peekHeight = hiddenHeight
+                halfExpandedRatio = halfHeight.toFloat() / parentHeight
+                state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                expandedOffset = navbarHeight
+            }
+        }
     }
 
     private fun attachCallbacks() {
@@ -225,6 +150,10 @@ class MapActivity : BaseActivity() {
                     delta < 0f -> SlideDirection.DOWN
                     else -> SlideDirection.NONE
                 }
+
+                val alpha = slideOffset.coerceIn(0f, 1f)
+
+                binding.mapScrim.alpha = alpha
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -253,5 +182,140 @@ class MapActivity : BaseActivity() {
             BottomSheetBehavior.STATE_HALF_EXPANDED -> behavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
     }
+
+    // study
+    private fun getStudyInfo() {
+        studyId = intent.getStringExtra(EXTRA_STUDY_ID).toString()
+
+        with(binding){
+            studyId.let {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    mapLoading.visibility = View.VISIBLE
+
+                    study = movebank.getSingleStudy(it)
+
+                    withContext(Dispatchers.Main) {
+                        study?.let{ study ->
+                            navbarText.text = study.name
+                            navbarText.isSelected = true
+
+                            val eventData = movebank.getEventData(study.id)
+
+                            val drawable = ContextCompat.getDrawable(this@MapActivity, R.drawable.map_marker)
+                            val bitmap = drawable?.toBitmap(width = 48, height = 48)
+                            val icon =  IconFactory.getInstance(this@MapActivity)
+                                .fromBitmap(bitmap!!)
+
+                            mapView.getMapAsync { map ->
+                                eventData.forEach { event ->
+                                    map.addMarker(MarkerOptions()
+                                        .icon(icon)
+                                        .position(LatLng(event.location_lat, event.location_long))
+                                        .title("Individual ID: ${event.individual_local_identifier}")
+                                        .snippet(event.timestamp))
+                                }
+
+                                map.cameraPosition = CameraPosition.Builder().target(LatLng(eventData[0].location_lat, eventData[0].location_long)).zoom(10.0).build()
+                            }
+
+                            mapLoading.visibility = View.GONE
+                            headerRow.visibility = View.GONE
+                            contentLoading.visibility = View.VISIBLE
+
+                            val species = if (!study.taxon_ids.isEmpty()) study.taxon_ids.split(",").getOrNull(0) else "Unknown Species"
+                            if (species != null && species != "Unknown Species") {
+                                val article = TaxonomyRepository().getArticle(species)
+                                speciesName.apply {
+                                    text = article?.title
+                                    isSelected = true
+                                }
+                                speciesNameLatin.apply {
+                                    text = species
+                                    isSelected = true
+                                }
+                                wikiContent.text = article?.extract
+
+                                article?.thumbnailUrl?.let { url ->
+                                    val bitmap = withContext(Dispatchers.IO) {
+                                        val connection = URL(url).openConnection()
+                                        BitmapFactory.decodeStream(connection.getInputStream())
+                                    }
+                                    speciesImage.setImageBitmap(bitmap)
+                                }
+                            } else {
+                                speciesName.text = "Unknown Species"
+                                wikiContent.text = "Could not fetch description."
+                                speciesImage.setImageResource(R.drawable.logo)
+                                speciesImage.imageTintList = ColorStateList.valueOf(
+                                    when (prefs.getString("theme", "Light")) {
+                                        "Light" -> ContextCompat.getColor(this@MapActivity, R.color.light_Primary)
+                                        "Dark" -> ContextCompat.getColor(this@MapActivity, R.color.dark_Primary)
+                                        else -> ContextCompat.getColor(this@MapActivity, R.color.light_Primary)
+                                    }
+                                )
+                            }
+
+                            contentLoading.visibility = View.GONE
+                            speciesCard.visibility = View.VISIBLE
+                            headerRow.visibility = View.VISIBLE
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    // tray events
+    private fun initTray() {
+        with(binding) {
+            currentUser.observe(this@MapActivity) { user ->
+                if (user != null) {
+                    val userStudies = user.saved_studies
+                    if (userStudies.contains(studyId)) {
+                        btnSave.icon = ContextCompat.getDrawable(this@MapActivity, R.drawable.unpin)
+                        btnSaveLabel.text = "Unpin"
+                    } else {
+                        btnSave.icon = ContextCompat.getDrawable(this@MapActivity, R.drawable.pin)
+                        btnSaveLabel.text = "Pin"
+                    }
+                }
+            }
+
+            btnSave.setOnClickListener {
+                val user = currentUser.value ?: return@setOnClickListener
+                val newList = user.saved_studies.toMutableList()
+
+                if (newList.contains(studyId)) {
+                    newList.remove(studyId)
+                } else {
+                    newList.add(studyId)
+                }
+
+                val arrayString = newList.joinToString(separator = ",", prefix = "{", postfix = "}")
+
+                val jsonBody = """
+                {
+                    "saved_studies": "$arrayString"
+                }
+            """.trimIndent()
+
+                mapLoading.visibility = View.VISIBLE
+
+                lifecycleScope.launch {
+                    try {
+                        supabase.updateUser(user.id, jsonBody)
+                        mapLoading.visibility = View.GONE
+                        Session.refresh()
+                    } catch (e: Exception) {
+                        mapLoading.visibility = View.GONE
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+    }
+
 
 }

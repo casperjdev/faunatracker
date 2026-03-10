@@ -1,50 +1,71 @@
 package com.example.faunatracker.dashboard
 
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
+import androidx.lifecycle.lifecycleScope
 import com.example.faunatracker.R
 import com.example.faunatracker.map.MapActivity
 import com.example.faunatracker.api.MovebankRepository
+import com.example.faunatracker.api.SupabaseRepository
+import com.example.faunatracker.auth.session.Session
+import com.example.faunatracker.auth.session.Session.currentUser
+import com.example.faunatracker.databinding.ContextMenuBinding
+import com.example.faunatracker.databinding.ItemStudyBinding
+import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 
 
 class StudyAdapter(
     private var items: List<MovebankRepository.Study>
 ) : RecyclerView.Adapter<StudyAdapter.StudyViewHolder>() {
 
-    class StudyViewHolder(item: View) : RecyclerView.ViewHolder(item) {
-        val name = item.findViewById<TextView>(R.id.studyName)
-        val author = item.findViewById<TextView>(R.id.studyAuthor)
-        val species = item.findViewById<TextView>(R.id.studySpecies)
-        val animalCount = item.findViewById<TextView>(R.id.studyAnimalCount)
-        val sensor = item.findViewById<TextView>(R.id.studySensor)
-        val releaseDate = item.findViewById<TextView>(R.id.studyReleaseDate)
-    }
+    private val repo = SupabaseRepository()
+
+    class StudyViewHolder(
+        val binding: ItemStudyBinding
+    ) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StudyViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_study, parent, false)
-        return StudyViewHolder(view)
+        val binding = ItemStudyBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return StudyViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: StudyViewHolder, position: Int) {
         val item = items[position]
 
-        holder.name.text = item.name
-        holder.author.text = if (item.principal_investigator_name.isEmpty()) "Unknown investigator" else item.principal_investigator_name
-        holder.species.text = if (item.taxon_ids.isEmpty()) "No species provided" else item.taxon_ids.split(",")[0]
-        holder.animalCount.text = if (item.number_of_individuals.isEmpty()) "Unknown number of animals" else item.number_of_individuals + " Animals"
-        holder.sensor.text = if (item.sensor_type_ids.isEmpty()) "No sensor type provided" else item.sensor_type_ids
-        holder.releaseDate.text = "Release Date: " + (if (item.go_public_date.isEmpty()) "Not provided" else item.go_public_date)
+        with(holder.binding) {
+            studyName.text = item.name
+            studyAuthor.text = if (item.principal_investigator_name.isEmpty()) "Unknown investigator" else item.principal_investigator_name
+            studySpecies.text = if (item.taxon_ids.isEmpty()) "No species provided" else item.taxon_ids.split(",")[0]
+            studyAnimalCount.text = if (item.number_of_individuals.isEmpty()) "Unknown number of animals" else item.number_of_individuals + " Animals"
+            studySensor.text = if (item.sensor_type_ids.isEmpty()) "No sensor type provided" else item.sensor_type_ids
+            studyReleaseDate.text = "Release Date: " + (if (item.go_public_date.isEmpty()) "Not provided" else item.go_public_date)
+        }
 
         holder.itemView.setOnClickListener { view ->
             val intent = Intent(view.context, MapActivity::class.java).apply {
                 putExtra(MapActivity.EXTRA_STUDY_ID, item.id)
             }
             view.context.startActivity(intent)
+        }
+
+        holder.itemView.setOnLongClickListener { view ->
+            showContextMenu(item, view)
+            true
         }
     }
 
@@ -53,5 +74,49 @@ class StudyAdapter(
     fun updateData(newItems: List<MovebankRepository.Study>) {
         items = newItems
         notifyDataSetChanged()
+    }
+
+    fun showContextMenu(study: MovebankRepository.Study, view: View) {
+        val binding = ContextMenuBinding.inflate(LayoutInflater.from(view.context))
+        val dialog = Dialog(view.context)
+
+        dialog.setContentView(binding.root)
+
+        binding.btnSave.setOnClickListener {
+            dialog.dismiss()
+            val user = currentUser.value ?: return@setOnClickListener
+            val newList = user.saved_studies.toMutableList()
+            newList.remove(study.id)
+
+            val arrayString = newList.joinToString(separator = ",", prefix = "{", postfix = "}")
+            val jsonBody = """
+                {
+                    "saved_studies": "$arrayString"
+                }
+            """.trimIndent()
+
+            (view.context as? AppCompatActivity)?.lifecycleScope?.launch {
+                try {
+                    repo.updateUser(user.id, jsonBody)
+                    Session.refresh()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
+
+        dialog.window?.apply {
+            setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setGravity(Gravity.START or Gravity.CENTER_VERTICAL)
+            setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        }
+
+        dialog.show()
     }
 }

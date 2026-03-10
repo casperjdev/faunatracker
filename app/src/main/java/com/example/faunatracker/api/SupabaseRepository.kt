@@ -18,7 +18,7 @@ class SupabaseRepository {
         val id: Int,
         val uname: String,
         val password: String,
-        val saved_studies: List<String>,
+        val saved_studies: MutableList<String>,
         val created_at: String
     )
 

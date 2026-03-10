@@ -7,13 +7,45 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSecondary"
     tools:context=".main.MainActivity">
-        <include layout="@layout/component_hero"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/hero"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="48dp">
+        <ImageView
+            android:id="@+id/hero_image"
+            android:layout_width="196dp"
+            android:layout_height="96dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/logo"
+            app:tint="?attr/colorPrimary" />
+
+        <TextView
+            android:id="@+id/hero_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            android:layout_marginTop="32dp"
+            android:text="@string/hero_desc"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="16sp"
+            android:textStyle="normal"
+            android:textAlignment="center"
+            />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/hero_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="?attr/colorPrimary"
+            android:text="@string/hero_button"
+            android:textColor="?attr/colorSecondary"
+            android:textStyle="bold"
+            app:rippleColor="?attr/colorSecondary"/>
+    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

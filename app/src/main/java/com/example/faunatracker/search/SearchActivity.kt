@@ -11,72 +11,80 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.faunatracker.R
 import com.example.faunatracker.base.BaseActivity
 import com.example.faunatracker.api.MovebankRepository
+import com.example.faunatracker.databinding.ActivitySearchBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SearchActivity : BaseActivity() {
-    private lateinit var adapter: StudyAdapter
-    private var allStudies: List<MovebankRepository.Study> = listOf()
-
-    private lateinit var overlay: FrameLayout
-    private lateinit var recycler: RecyclerView
-    private lateinit var searchView: SearchView
+class SearchActivity : BaseActivity<ActivitySearchBinding>(ActivitySearchBinding::inflate) {
+    private var studies: List<MovebankRepository.Study> = listOf()
+    private var adapter = StudyAdapter(mutableListOf())
+    private val repo = MovebankRepository()
+    private lateinit var imm: InputMethodManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search)
+        imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
-        overlay = findViewById(R.id.loadingOverlay)
-        recycler = findViewById(R.id.resultsRecycler)
+        setupSearch()
+        setupListeners()
+    }
 
-        searchView = findViewById(R.id.searchBar);
-        searchView.isIconified = false
-        searchView.requestFocusFromTouch()
+    private fun setupSearch() {
+        with(binding) {
+            searchBar.isIconified = false
+            searchBar.clearFocus()
 
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(searchView.findFocus(), InputMethodManager.SHOW_IMPLICIT)
-
-        adapter = StudyAdapter(listOf())
-        recycler.adapter = adapter
-        recycler.layoutManager = LinearLayoutManager(this)
-
-        overlay.visibility = View.VISIBLE
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            allStudies = MovebankRepository().getStudies()
-
-            withContext(Dispatchers.Main) {
-                overlay.visibility = View.GONE
-                adapter.updateData(allStudies)
+            resultsRecycler.apply {
+                adapter = this@SearchActivity.adapter
+                layoutManager = LinearLayoutManager(this@SearchActivity)
             }
-        }
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (!query.isNullOrBlank()) {
-                    searchView.clearFocus()
-                    imm.hideSoftInputFromWindow(searchView.windowToken, 0)
+            loadingOverlay.visibility = View.VISIBLE
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                studies = repo.getStudies()
+
+                withContext(Dispatchers.Main) {
+                    loadingOverlay.visibility = View.GONE
+                    adapter.updateData(studies)
+
+                    searchBar.requestFocus()
+                    imm.showSoftInput(searchBar, InputMethodManager.SHOW_IMPLICIT)
                 }
-                return true
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                filterStudies(newText.toString())
-                return true
-            }
-        })
+        }
+    }
+
+    private fun setupListeners() {
+        with(binding) {
+            searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    if (!query.isNullOrBlank()) {
+                        searchBar.clearFocus()
+                        imm.hideSoftInputFromWindow(searchBar.windowToken, 0)
+                    }
+                    return true
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    filterStudies(newText.toString())
+                    return true
+                }
+            })
+        }
     }
 
     private fun filterStudies(query: String) {
         if (query.isEmpty()) {
-            adapter.updateData(allStudies)
+            adapter.updateData(studies)
             return
         }
         adapter.updateData(
-            allStudies.filter {
+            studies.filter {
                 it.name.contains(query, ignoreCase = true)
-
+                        || it.taxon_ids.split(",")[0].contains(query, ignoreCase = true)
             }
         )
     }

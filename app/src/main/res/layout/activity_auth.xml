@@ -21,14 +21,29 @@
 
         />
 
-    <include layout="@layout/component_auth_logo"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="96dp"
-        />
+        android:layout_marginBottom="72sp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <ImageView
+            android:id="@+id/auth_logo"
+            android:layout_width="32sp"
+            android:layout_height="32sp"
+            android:src="@drawable/logo"
+            app:tint="?attr/colorPrimary"
+            android:contentDescription="@string/auth_logo"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/auth_logo"/>
+    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

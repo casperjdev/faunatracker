@@ -10,69 +10,57 @@ import androidx.lifecycle.lifecycleScope
 import com.example.faunatracker.R
 import com.example.faunatracker.api.SupabaseRepository.AuthResult.*
 import com.example.faunatracker.auth.session.Session
+import com.example.faunatracker.base.BaseFragment
+import com.example.faunatracker.databinding.FragmentRegisterBinding
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 
-class RegisterFragment : Fragment(R.layout.fragment_register) {
-    private lateinit var unameEdit: EditText
-    private lateinit var passwordEdit: EditText
-    private lateinit var confirmEdit: EditText
-    private lateinit var registerBtn: MaterialButton
-    private lateinit var toLoginBtn: TextView
-    private lateinit var errorBoundary: TextView
-    private lateinit var loadingSpinner: FrameLayout
-
+class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupListeners()
+    }
 
-        unameEdit = view.findViewById(R.id.register_uname)
-        passwordEdit = view.findViewById(R.id.register_password)
-        confirmEdit = view.findViewById(R.id.register_confirm)
-        registerBtn = view.findViewById(R.id.button_register)
-        toLoginBtn = view.findViewById(R.id.button_toLogin)
-        errorBoundary = view.findViewById(R.id.register_error)
-
-        loadingSpinner = view.findViewById(R.id.loadingOverlay)
-
-        toLoginBtn.setOnClickListener {
+    private fun setupListeners() = with(binding) {
+        buttonToLogin.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.auth_fragment_container, LoginFragment())
                 .addToBackStack(null)
                 .commit()
         }
 
-        registerBtn.setOnClickListener {
-            val uname = unameEdit.text.toString()
-            val password = passwordEdit.text.toString()
-            val confirm = confirmEdit.text.toString()
+        buttonRegister.setOnClickListener {
+            val uname = registerUname.text.toString()
+            val password = registerPassword.text.toString()
+            val confirm = registerConfirm.text.toString()
 
             if (uname.isEmpty() || confirm.isEmpty() || password.isEmpty()) {
-                errorBoundary.text = "Please enter credentials."
+                registerError.text = "Please enter credentials."
                 return@setOnClickListener
             } else if (password != confirm) {
-                errorBoundary.text = "Password fields must match."
+                registerError.text = "Password fields must match."
                 return@setOnClickListener
             }
 
-            loadingSpinner.visibility = View.VISIBLE
-            errorBoundary.text = ""
+            loadingOverlay.visibility = View.VISIBLE
+            registerError.text = ""
 
             lifecycleScope.launch {
                 try {
                     val result = Session.register(uname, password)
-                    loadingSpinner.visibility = View.GONE
+                    loadingOverlay.visibility = View.GONE
 
                     when (result) {
-                        is Success -> errorBoundary.text = ""
-                        is Error.InvalidInput -> errorBoundary.text = "Please enter credentials."
-                        is Error.UserAlreadyExists -> errorBoundary.text = "User already exists."
-                        is Error.NetworkError -> errorBoundary.text = "A network error occured. Try again later."
-                        is Error.ServerError -> errorBoundary.text = "A server error occured. Try again later."
-                        else -> errorBoundary.text = "Something went wrong."
+                        is Success -> registerError.text = ""
+                        is Error.InvalidInput -> registerError.text = "Please enter credentials."
+                        is Error.UserAlreadyExists -> registerError.text = "User already exists."
+                        is Error.NetworkError -> registerError.text = "A network error occured. Try again later."
+                        is Error.ServerError -> registerError.text = "A server error occured. Try again later."
+                        else -> registerError.text = "Something went wrong."
                     }
                 } catch (e: Exception) {
-                    loadingSpinner.visibility = View.GONE
-                    errorBoundary.text = "Something went wrong."
+                    loadingOverlay.visibility = View.GONE
+                    registerError.text = "Something went wrong."
                 }
             }
         }
