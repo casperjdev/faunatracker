@@ -94,12 +94,6 @@
                         android:background="@drawable/drag_handle" />
                 </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1sp"
-                android:background="?attr/colorTertiary"
-                />
-
                 <!-- HALF-EXPANDED HEADER (horizontal) -->
                 <LinearLayout
                     android:id="@+id/headerRow"
@@ -181,12 +175,6 @@
                         android:indeterminateTint="?attr/colorPrimary"/>
                 </FrameLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1sp"
-                    android:background="?attr/colorTertiary"
-                    />
-
                 <!-- FULL EXPANDED CONTENT -->
                 <androidx.core.widget.NestedScrollView
                     android:id="@+id/wikiScroll"
@@ -208,12 +196,6 @@
                         android:textSize="16sp" />
 
                 </androidx.core.widget.NestedScrollView>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1sp"
-                    android:background="?attr/colorTertiary"
-                    />
 
                 <!-- BUTTONS TRAY -->
                 <LinearLayout
@@ -300,7 +282,7 @@
                     </LinearLayout>
 
 
-                    <LinearLayout
+                    <!-- <LinearLayout
                         android:layout_width="0sp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
@@ -369,11 +351,10 @@
                             android:gravity="center"
                             android:layout_marginTop="12sp"
                             />
-                    </LinearLayout>
+                    </LinearLayout> -->
 
                 </LinearLayout>
 
-                <!-- Add padding for gesture navigation insets -->
                 <View
                     android:id="@+id/bottomNavInsetSpacer"
                     android:layout_width="match_parent"

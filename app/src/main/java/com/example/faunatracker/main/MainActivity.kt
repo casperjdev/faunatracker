@@ -26,12 +26,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
-    private fun setupListeners() {
-        with(binding) {
-            heroButton.setOnClickListener {
-                val intent = Intent(this@MainActivity, AuthActivity::class.java)
-                startActivity(intent)
-            }
+    private fun setupListeners() = with(binding) {
+        heroButton.setOnClickListener {
+            val intent = Intent(this@MainActivity, AuthActivity::class.java)
+            startActivity(intent)
         }
     }
 }

@@ -10,10 +10,6 @@ import java.util.Locale
 import java.util.Locale.getDefault
 
 class TaxonomyRepository {
-    // https://api.gbif.org/v1/species/match?name=canis_lupus&strict=true
-    // https://api.gbif.org/v1/species/5219173
-    // https://en.wikipedia.org/w/api.php?action=query&prop=extracts&titles=gray_wolf&explaintext=1&format=json
-
     private val gbifUrl = BuildConfig.GBIF_URL
     private val wikipediaUrl = BuildConfig.WIKIPEDIA_URL
     private val api = ApiClient.create("")
@@ -31,8 +27,6 @@ class TaxonomyRepository {
         val json = JSONObject(res.body?: "")
         val key = json.getInt("usageKey")
         return key
-
-
     }
 
     suspend fun getVernacularName(key: Int): String {

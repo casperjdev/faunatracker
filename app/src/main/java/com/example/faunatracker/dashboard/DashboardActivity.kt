@@ -30,83 +30,79 @@ class DashboardActivity : BaseActivity<ActivityDashboardBinding>(ActivityDashboa
     private var studies: MutableList<MovebankRepository.Study> = mutableListOf()
     private var adapter = StudyAdapter(mutableListOf())
     private val repo = MovebankRepository()
+    private lateinit var imm: InputMethodManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 
         observeUser()
         setupListeners()
     }
 
-    private fun observeUser() {
-        with(binding) {
-            currentUser.observe(this@DashboardActivity) { user ->
-                if (user != null) {
-                    dashboardGreeting.text = "Welcome, ${user.uname}"
+    private fun observeUser() = with(binding) {
+        currentUser.observe(this@DashboardActivity) { user ->
+            if (user != null) {
+                dashboardGreeting.text = "Welcome, ${user.uname}"
 
-                    // Clear old data to avoid duplicates
-                    studies = mutableListOf()
+                // Clear old data to avoid duplicates
+                studies = mutableListOf()
 
-                    dashboardList.apply {
-                        adapter = this@DashboardActivity.adapter
-                        layoutManager = LinearLayoutManager(this@DashboardActivity)
-                    }
-
-                    if (user.saved_studies.isNotEmpty()) {
-                        dashboardPlaceholder.visibility = View.GONE
-                        loadingOverlay.visibility = View.VISIBLE
-                    }
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        user.saved_studies.forEach {
-                            val study = repo.getSingleStudy(it)
-                            studies.add(study)
-                        }
-
-                        withContext(Dispatchers.Main) {
-                            loadingOverlay.visibility = View.GONE
-                            adapter.updateData(studies)
-                            updateEmptyState(user)
-                        }
-                    }
-
-                    val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-
-                    searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                        override fun onQueryTextSubmit(query: String?): Boolean {
-                            if (!query.isNullOrBlank()) {
-                                searchBar.clearFocus()
-                                imm.hideSoftInputFromWindow(searchBar.windowToken, 0)
-                            }
-                            return true
-                        }
-
-                        override fun onQueryTextChange(newText: String?): Boolean {
-                            filterStudies(newText.toString())
-                            return true
-                        }
-                    })
-                } else {
-                    val intent = Intent(this@DashboardActivity, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                    startActivity(intent)
+                dashboardList.apply {
+                    adapter = this@DashboardActivity.adapter
+                    layoutManager = LinearLayoutManager(this@DashboardActivity)
                 }
+
+                if (user.saved_studies.isNotEmpty()) {
+                    dashboardPlaceholder.visibility = View.GONE
+                    loadingOverlay.visibility = View.VISIBLE
+                }
+                lifecycleScope.launch(Dispatchers.IO) {
+                    user.saved_studies.forEach {
+                        val study = repo.getSingleStudy( it)
+                        studies.add(study)
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        loadingOverlay.visibility = View.GONE
+                        adapter.updateData(studies)
+                        updateEmptyState(user)
+                    }
+                }
+            } else {
+                val intent = Intent(this@DashboardActivity, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
             }
         }
     }
 
 
-    private fun setupListeners() {
-        with(binding) {
-            dashboardSearch.setOnClickListener {
-                val intent = Intent(this@DashboardActivity, SearchActivity::class.java)
-                startActivity(intent)
+    private fun setupListeners() = with(binding) {
+        searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (!query.isNullOrBlank()) {
+                    searchBar.clearFocus()
+                    imm.hideSoftInputFromWindow(searchBar.windowToken, 0)
+                }
+                return true
             }
 
-            navSettings.setOnClickListener {
-                val intent = Intent(this@DashboardActivity, SettingsActivity::class.java)
-                startActivity(intent)
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterStudies(newText.toString())
+                return true
             }
+        })
+
+        dashboardSearch.setOnClickListener {
+            val intent = Intent(this@DashboardActivity, SearchActivity::class.java)
+            startActivity(intent)
+        }
+
+        navSettings.setOnClickListener {
+            val intent = Intent(this@DashboardActivity, SettingsActivity::class.java)
+            startActivity(intent)
         }
     }
 
@@ -123,15 +119,13 @@ class DashboardActivity : BaseActivity<ActivityDashboardBinding>(ActivityDashboa
         )
     }
 
-    private fun updateEmptyState(user: SupabaseRepository.User) {
-        with(binding) {
-            if (user.saved_studies.isEmpty()) {
-                dashboardPlaceholder.visibility = View.VISIBLE
-                dashboardListContainer.visibility = View.GONE
-            } else {
-                dashboardPlaceholder.visibility = View.GONE
-                dashboardListContainer.visibility = View.VISIBLE
-            }
+    private fun updateEmptyState(user: SupabaseRepository.User) = with(binding) {
+        if (user.saved_studies.isEmpty()) {
+            dashboardPlaceholder.visibility = View.VISIBLE
+            dashboardListContainer.visibility = View.GONE
+        } else {
+            dashboardPlaceholder.visibility = View.GONE
+            dashboardListContainer.visibility = View.VISIBLE
         }
     }
 }

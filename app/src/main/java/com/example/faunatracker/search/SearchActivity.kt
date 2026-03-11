@@ -21,6 +21,11 @@ class SearchActivity : BaseActivity<ActivitySearchBinding>(ActivitySearchBinding
     private var adapter = StudyAdapter(mutableListOf())
     private val repo = MovebankRepository()
     private lateinit var imm: InputMethodManager
+    private lateinit var query: String
+
+    companion object {
+        const val EXTRA_QUERY = "EXTRA_QUERY"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,50 +35,51 @@ class SearchActivity : BaseActivity<ActivitySearchBinding>(ActivitySearchBinding
         setupListeners()
     }
 
-    private fun setupSearch() {
-        with(binding) {
-            searchBar.isIconified = false
-            searchBar.clearFocus()
+    private fun setupSearch() = with(binding) {
+        query = intent.getStringExtra(EXTRA_QUERY) ?: ""
 
-            resultsRecycler.apply {
-                adapter = this@SearchActivity.adapter
-                layoutManager = LinearLayoutManager(this@SearchActivity)
+        searchBar.isIconified = false
+        searchBar.clearFocus()
+
+        resultsRecycler.apply {
+            adapter = this@SearchActivity.adapter
+            layoutManager = LinearLayoutManager(this@SearchActivity)
+        }
+
+        loadingOverlay.visibility = View.VISIBLE
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            studies = repo.getStudies()
+
+            withContext(Dispatchers.Main) {
+                loadingOverlay.visibility = View.GONE
+                adapter.updateData(studies)
+
+                searchBar.requestFocus()
+                imm.showSoftInput(searchBar, InputMethodManager.SHOW_IMPLICIT)
+
+                searchBar.setQuery(query, false)
             }
 
-            loadingOverlay.visibility = View.VISIBLE
-
-            lifecycleScope.launch(Dispatchers.IO) {
-                studies = repo.getStudies()
-
-                withContext(Dispatchers.Main) {
-                    loadingOverlay.visibility = View.GONE
-                    adapter.updateData(studies)
-
-                    searchBar.requestFocus()
-                    imm.showSoftInput(searchBar, InputMethodManager.SHOW_IMPLICIT)
-                }
-            }
 
         }
     }
 
-    private fun setupListeners() {
-        with(binding) {
-            searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String?): Boolean {
-                    if (!query.isNullOrBlank()) {
-                        searchBar.clearFocus()
-                        imm.hideSoftInputFromWindow(searchBar.windowToken, 0)
-                    }
-                    return true
+    private fun setupListeners() = with(binding) {
+        searchBar.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (!query.isNullOrBlank()) {
+                    searchBar.clearFocus()
+                    imm.hideSoftInputFromWindow(searchBar.windowToken, 0)
                 }
+                return true
+            }
 
-                override fun onQueryTextChange(newText: String?): Boolean {
-                    filterStudies(newText.toString())
-                    return true
-                }
-            })
-        }
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterStudies(newText.toString())
+                return true
+            }
+        })
     }
 
     private fun filterStudies(query: String) {

@@ -50,131 +50,124 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>(ActivitySettingsB
         setupListeners()
     }
 
-    private fun loadSettings() {
-        with(binding) {
-            when (prefs.getString("theme", "Light")) {
-                "Light" -> settingsTheme.check(themeLight.id)
-                "Dark" -> settingsTheme.check(themeDark.id)
-            }
+    private fun loadSettings() = with(binding) {
+        when (prefs.getString("theme", "Light")) {
+            "Light" -> settingsTheme.check(themeLight.id)
+            "Dark" -> settingsTheme.check(themeDark.id)
+        }
 
-            settingsNotifications.isChecked = prefs.getBoolean("notifications", true)
-            settingsLocation.isChecked = prefs.getBoolean("location", false)
+        settingsNotifications.isChecked = prefs.getBoolean("notifications", true)
+        settingsLocation.isChecked = prefs.getBoolean("location", false)
+    }
+
+    private fun observeUser() = with(binding) {
+        currentUser.observe(this@SettingsActivity) { user ->
+            if (user != null) {
+                profileUname.text = user.uname
+                profileUnameEdit.setText(user.uname)
+            } else {
+                val intent = Intent(this@SettingsActivity, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+            }
         }
     }
 
-    private fun observeUser() {
-        with(binding) {
-            currentUser.observe(this@SettingsActivity) { user ->
-                if (user != null) {
-                    profileUname.text = user.uname
-                    profileUnameEdit.setText(user.uname)
-                } else {
-                    val intent = Intent(this@SettingsActivity, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                    startActivity(intent)
-                }
+    private fun setupListeners() = with(binding) {
+        // theme
+        settingsTheme.setOnCheckedChangeListener { _, checkedId ->
+            val selected = when (checkedId) {
+                themeLight.id -> "Light"
+                themeDark.id -> "Dark"
+                else -> "Light"
+            }
+            prefs.edit { putString("theme", selected) }
+
+            when (selected) {
+                "Light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                "Dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             }
         }
 
-    }
+        // Notifications
+        settingsNotifications.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit { putBoolean("notifications", isChecked) }
 
-    private fun setupListeners() {
-        with(binding) {
-            // theme
-            settingsTheme.setOnCheckedChangeListener { _, checkedId ->
-                val selected = when (checkedId) {
-                    themeLight.id -> "Light"
-                    themeDark.id -> "Dark"
-                    else -> "Light"
-                }
-                prefs.edit { putString("theme", selected) }
-
-                when (selected) {
-                    "Light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                    "Dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                }
+            if (isChecked) {
+                requestNotificationPermissionIfNeeded()
+            } else {
+                disableNotifications()
             }
+        }
 
-            // Notifications
-            settingsNotifications.setOnCheckedChangeListener { _, isChecked ->
-                prefs.edit { putBoolean("notifications", isChecked) }
+        // Location
+        settingsLocation.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit { putBoolean("location", isChecked) }
 
-                if (isChecked) {
-                    requestNotificationPermissionIfNeeded()
-                } else {
-                    disableNotifications()
-                }
+            if (isChecked) {
+                requestLocationPermissionIfNeeded()
+            } else {
+                stopLocationUpdates()
             }
+        }
 
-            // Location
-            settingsLocation.setOnCheckedChangeListener { _, isChecked ->
-                prefs.edit { putBoolean("location", isChecked) }
+        // Changing username
+        profileEdit.setOnClickListener {
+            profileEditDisabled.visibility = View.GONE;
+            profileEditEnabled.visibility = View.VISIBLE;
 
-                if (isChecked) {
-                    requestLocationPermissionIfNeeded()
-                } else {
-                    stopLocationUpdates()
-                }
-            }
+            profileUnameEdit.requestFocusFromTouch()
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(profileUnameEdit.findFocus(), InputMethodManager.SHOW_IMPLICIT)
+        }
 
-            // Changing username
-            profileEdit.setOnClickListener {
-                profileEditDisabled.visibility = View.GONE;
-                profileEditEnabled.visibility = View.VISIBLE;
-
-                profileUnameEdit.requestFocusFromTouch()
-                val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.showSoftInput(profileUnameEdit.findFocus(), InputMethodManager.SHOW_IMPLICIT)
-            }
-
-            profileUpdate.setOnClickListener {
-                val jsonBody = """
+        profileUpdate.setOnClickListener {
+            val jsonBody = """
                 {
                     "uname": "${profileUnameEdit.text}"
                 }
             """.trimIndent()
 
-                loadingOverlay.visibility = View.VISIBLE
+            loadingOverlay.visibility = View.VISIBLE
 
-                profileError.apply {
-                    setTextColor("#dd0000".toColorInt())
-                    text = ""
-                }
+            profileError.apply {
+                setTextColor("#dd0000".toColorInt())
+                text = ""
+            }
 
-                lifecycleScope.launch {
-                    try {
-                        val user = currentUser.value ?: return@launch
-                        val res = repo.updateUser(user.id, jsonBody)
-                        loadingOverlay.visibility = View.GONE
+            lifecycleScope.launch {
+                try {
+                    val user = currentUser.value ?: return@launch
+                    val res = repo.updateUser(user.id, jsonBody)
+                    loadingOverlay.visibility = View.GONE
 
-                        if (res) {
-                            profileUname.visibility = View.VISIBLE;
-                            profileUnameEdit.visibility = View.GONE;
+                    if (res) {
+                        profileUname.visibility = View.VISIBLE;
+                        profileUnameEdit.visibility = View.GONE;
 
-                            Session.refresh()
+                        Session.refresh()
 
-                            profileError.apply {
-                                setTextColor("#00dd00".toColorInt())
-                                text = "Username updated!"
-                            }
-                        } else {
-                            profileError.apply {
-                                setTextColor("#dd0000".toColorInt())
-                                text = "Could not update username."
-                            }
+                        profileError.apply {
+                            setTextColor("#00dd00".toColorInt())
+                            text = "Username updated!"
                         }
-                    } catch (e: Exception) {
-                        loadingOverlay.visibility = View.GONE
-                        profileError.text = "Could not update username."
+                    } else {
+                        profileError.apply {
+                            setTextColor("#dd0000".toColorInt())
+                            text = "Could not update username."
+                        }
                     }
+                } catch (e: Exception) {
+                    loadingOverlay.visibility = View.GONE
+                    profileError.text = "Could not update username."
                 }
             }
+        }
 
-            // Logging out
-            profileLogout.setOnClickListener {
-                Session.logout()
-            }
+        // Logging out
+        profileLogout.setOnClickListener {
+            Session.logout()
         }
     }
 

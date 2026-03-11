@@ -21,6 +21,7 @@ import com.example.faunatracker.auth.session.Session
 import com.example.faunatracker.auth.session.Session.currentUser
 import com.example.faunatracker.databinding.ContextMenuBinding
 import com.example.faunatracker.databinding.ItemStudyBinding
+import com.example.faunatracker.search.SearchActivity
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 
@@ -103,6 +104,16 @@ class StudyAdapter(
                     e.printStackTrace()
                 }
             }
+        }
+
+        binding.btnFindSimilar.setOnClickListener {
+            dialog.dismiss()
+            val species = if (study.taxon_ids.isEmpty()) "No species provided" else study.taxon_ids.split(",")[0]
+
+            val intent = Intent(view.context, SearchActivity::class.java).apply {
+                putExtra(SearchActivity.EXTRA_QUERY, species)
+            }
+            view.context.startActivity(intent)
         }
 
         dialog.setCancelable(true)
